@@ -1,0 +1,3 @@
+RewriteEngine On
+# Redirect everything from this folder to the new multitenant URL
+RewriteRule ^(.*)$ https://quickaccount2.com/Lendsup [R=301,L]
