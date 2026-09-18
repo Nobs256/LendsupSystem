@@ -1903,10 +1903,15 @@ $date=$_GET['b_date'];
 $amo=str_replace(",","",$_GET['amo']);
 $recovered=0;
 $type='Cash_in';
-$client_id=0;
+$client_id=isset($_GET['client_id'])?$_GET['client_id']:0;
 $mom=1;
 $reg_fee=0;
 $names='Exccess';
+if($client_id){
+$hup=mysqli_query($conn,"SELECT * FROM clients WHERE client_id='$client_id' and users_id='$user_id' and bosses_id='$boss_id'");
+$nowc=mysqli_fetch_assoc($hup);
+if($nowc){$names='Excess - '.$nowc["firstname"]." ".$nowc["lastname"];}
+}
 
 
 $curr_date=date('Y-m-d');
@@ -1937,9 +1942,89 @@ else {
         $check=countExist($conn,"excess_short","rec_date='$date' AND excess_short='$excess' AND officer_id='$officer_id' AND userrec_id='$user_id' and bossrec_id='$boss_id'");
         $check1=countExist($conn,"shortage","rec_date='$date' AND officer_id='$officer_id' AND userrec_id='$user_id' and bossrec_id='$boss_id'");
 
-        if ($check1==0 && $excess=='Shortage') {
-        mysqli_query($conn,"INSERT INTO shortage(short_id, userrec_id, bossrec_id, officer_id, rec_date, paid_amount, recovered) 
-        VALUES (NULL, '$user_id', '$boss_id', '$officer_id', '$date', '$amo', '$recovered')");
+        //CLIENT ENTRY - if this client already has this type on this date, ADD the amount to the existing record
+        if($client_id && $excess=='Shortage'){
+        $existing_short = mysqli_fetch_assoc(mysqli_query($conn,"SELECT * FROM shortage WHERE rec_date='$date' AND client_id='$client_id' AND userrec_id='$user_id' AND bossrec_id='$boss_id' LIMIT 1"));
+        if($existing_short){
+        $new_short_amount=$existing_short["paid_amount"]+$amo;
+        mysqli_query($conn,"UPDATE shortage set paid_amount='$new_short_amount' where short_id='".$existing_short["short_id"]."'");
+        echo"<div style='background-color:#006F37; border-radius:5px; color:white; 
+        height:40px; margin-left:25px; padding:5px; width: 650px'>Data Updated Successfully! The Client's Total Shortage on this date is now ".number_format($new_short_amount)."
+        <a href='view_excess_shortage.php' style='color:white; margin-left:100px;''>X</a>
+        </div>"; 
+        }
+        else{
+        mysqli_query($conn,"INSERT INTO shortage(short_id, userrec_id, bossrec_id, officer_id, client_id, rec_date, paid_amount, recovered) 
+        VALUES (NULL, '$user_id', '$boss_id', '$officer_id', '$client_id', '$date', '$amo', '$recovered')");
+        echo"<div style='background-color:#006F37; border-radius:5px; color:white; 
+        height:40px; margin-left:25px; padding:5px; width: 500px'>Data is Successfully Saved
+        <a href='view_excess_shortage.php' style='color:white; margin-left:100px;''>X</a>
+        </div>"; 
+        }
+        }
+
+        else if($client_id && $excess=='Excess'){
+        $existing_excess = mysqli_fetch_assoc(mysqli_query($conn,"SELECT * FROM excess_short WHERE rec_date='$date' AND excess_short='Excess' AND client_id='$client_id' AND userrec_id='$user_id' AND bossrec_id='$boss_id' LIMIT 1"));
+        if($existing_excess){
+        $new_excess_amount=$existing_excess["paid_amount"]+$amo;
+        mysqli_query($conn,"UPDATE excess_short set paid_amount='$new_excess_amount' where excess_id='".$existing_excess["excess_id"]."'");
+        //add the additional amount to the Excess wallet
+        if($check2==0)
+        {
+        mysqli_query($conn,"INSERT INTO total_savings(ts_id, clientts_id, user_id, boss_id, total) 
+        VALUES (NULL, '$excess',  '$user_id', '$boss_id', '$amo')");
+        }
+        else{
+        $total=0;
+        $total_saved=0;
+        $results = mysqli_fetch_assoc(mysqli_query($conn,"SELECT * FROM total_savings  where clientts_id='$excess' and user_id='$user_id'
+        and boss_id='$boss_id'"));
+        $total = $results["total"];
+        $total_saved=$total+$amo;
+        $query ="UPDATE total_savings set total='$total_saved' where clientts_id='$excess' and user_id='$user_id' 
+        and boss_id='$boss_id'";
+        $execute = mysqli_query($conn, $query);
+        }
+        //record the additional amount in transcations
+        mysqli_query($conn,"INSERT INTO transcations(ts_id, user_id, boss_id, clientr_id, transc_date, transc_name, transc_type, transc_amount, reg_fee, mom) 
+        VALUES (NULL, '$user_id', '$boss_id', '$client_id', '$date', '$names',  '$type', '$amo', '$reg_fee', '$mom')");
+        echo"<div style='background-color:#006F37; border-radius:5px; color:white; 
+        height:40px; margin-left:25px; padding:5px; width: 650px'>Data Updated Successfully! The Client's Total Excess on this date is now ".number_format($new_excess_amount)."
+        <a href='view_excess_shortage.php' style='color:white; margin-left:100px;''>X</a>
+        </div>"; 
+        }
+        else{
+        //first entry for this client on this date
+        if($check2==0)
+        {
+        mysqli_query($conn,"INSERT INTO total_savings(ts_id, clientts_id, user_id, boss_id, total) 
+        VALUES (NULL, '$excess',  '$user_id', '$boss_id', '$amo')");
+        }
+        else{
+        $total=0;
+        $total_saved=0;
+        $results = mysqli_fetch_assoc(mysqli_query($conn,"SELECT * FROM total_savings  where clientts_id='$excess' and user_id='$user_id'
+        and boss_id='$boss_id'"));
+        $total = $results["total"];
+        $total_saved=$total+$amo;
+        $query ="UPDATE total_savings set total='$total_saved' where clientts_id='$excess' and user_id='$user_id' 
+        and boss_id='$boss_id'";
+        $execute = mysqli_query($conn, $query);
+        }
+        mysqli_query($conn,"INSERT INTO excess_short(excess_id, userrec_id, bossrec_id, officer_id, client_id, rec_date, excess_short, paid_amount, withdrawn) 
+        VALUES (NULL, '$user_id', '$boss_id', '$officer_id', '$client_id', '$date', '$excess', '$amo', '$withdrawn')");
+        mysqli_query($conn,"INSERT INTO transcations(ts_id, user_id, boss_id, clientr_id, transc_date, transc_name, transc_type, transc_amount, reg_fee, mom) 
+        VALUES (NULL, '$user_id', '$boss_id', '$client_id', '$date', '$names',  '$type', '$amo', '$reg_fee', '$mom')");
+        echo"<div style='background-color:#006F37; border-radius:5px; color:white; 
+        height:40px; margin-left:25px; padding:5px; width: 500px'>Data is Successfully Saved
+        <a href='view_excess_shortage.php' style='color:white; margin-left:100px;''>X</a>
+        </div>"; 
+        }
+        }
+
+        else if ($check1==0 && $excess=='Shortage') {
+        mysqli_query($conn,"INSERT INTO shortage(short_id, userrec_id, bossrec_id, officer_id, client_id, rec_date, paid_amount, recovered) 
+        VALUES (NULL, '$user_id', '$boss_id', '$officer_id', '$client_id', '$date', '$amo', '$recovered')");
 
         echo"<div style='background-color:#006F37; border-radius:5px; color:white; 
         height:40px; margin-left:25px; padding:5px; width: 500px'>Data is Successfully Saved
@@ -1969,8 +2054,8 @@ else {
         $execute = mysqli_query($conn, $query);
         }
 
-        mysqli_query($conn,"INSERT INTO excess_short(excess_id, userrec_id, bossrec_id, officer_id, rec_date, excess_short, paid_amount, withdrawn) 
-        VALUES (NULL, '$user_id', '$boss_id', '$officer_id', '$date', '$excess', '$amo', '$withdrawn')");
+        mysqli_query($conn,"INSERT INTO excess_short(excess_id, userrec_id, bossrec_id, officer_id, client_id, rec_date, excess_short, paid_amount, withdrawn) 
+        VALUES (NULL, '$user_id', '$boss_id', '$officer_id', '$client_id', '$date', '$excess', '$amo', '$withdrawn')");
 
         mysqli_query($conn,"INSERT INTO transcations(ts_id, user_id, boss_id, clientr_id, transc_date, transc_name, transc_type, transc_amount, reg_fee, mom) 
         VALUES (NULL, '$user_id', '$boss_id', '$client_id', '$date', '$names',  '$type', '$amo', '$reg_fee', '$mom')");
@@ -1993,6 +2078,7 @@ else {
         <input type=hidden name='user_id' value='$user_id'>
         <input type=hidden name='boss_id' value='$boss_id'>
         <input type=hidden name='officer_id' value='$officer_id'>
+        <input type=hidden name='client_id' value='$client_id'>
         <input type=hidden name='excess_date' value='$date'>
         <input type=hidden name='amount' value='$amo'>
         <input type=hidden name='excess' value='$excess'>
@@ -2015,6 +2101,7 @@ if(isset($_POST['excess_more'])){
 $user_id=$_POST['user_id'];
 $boss_id=$_POST['boss_id'];
 $officer_id=$_POST['officer_id'];
+$client_id=$_POST['client_id'];
 $date=$_POST['excess_date'];
 $excess=$_POST['excess'];
 $amo= $_POST['amount'];
@@ -2022,10 +2109,14 @@ $total=0;
 $total_excess=0;
 $recovered=0;
 $type='Cash_in';
-$client_id=0;
 $mom=1;
 $reg_fee=0;
 $names='Exccess';
+if($client_id){
+$hup=mysqli_query($conn,"SELECT * FROM clients WHERE client_id='$client_id' and users_id='$user_id' and bosses_id='$boss_id'");
+$nowc=mysqli_fetch_assoc($hup);
+if($nowc){$names='Excess - '.$nowc["firstname"]." ".$nowc["lastname"];}
+}
 
 $curr_date=date('Y-m-d');
 $sent_date=date("Y-m-d", strtotime($date));
@@ -2053,7 +2144,7 @@ $total=$total+$amount;
 }
 
 $total_excess=$total+$amo;
-$query ="UPDATE excess_short set paid_amount='$total_excess' where userrec_id='$user_id' and bossrec_id='$boss_id'  and officer_id='$officer_id' and rec_date='$date' and excess_short='$excess'";
+$query ="UPDATE excess_short set paid_amount='$total_excess', client_id='$client_id' where userrec_id='$user_id' and bossrec_id='$boss_id'  and officer_id='$officer_id' and rec_date='$date' and excess_short='$excess'";
 $execute = mysqli_query($conn, $query);
 
 $total=0;
@@ -2085,7 +2176,7 @@ $total=$total+$amount;
 
 $total_excess=$total+$amo;
 
-$query ="UPDATE shortage set paid_amount='$total_excess' where userrec_id='$user_id' and bossrec_id='$boss_id'  and officer_id='$officer_id' and rec_date='$date'";
+$query ="UPDATE shortage set paid_amount='$total_excess', client_id='$client_id' where userrec_id='$user_id' and bossrec_id='$boss_id'  and officer_id='$officer_id' and rec_date='$date'";
 $execute = mysqli_query($conn, $query);
 
 header("Location: add_excess_short.php?success");

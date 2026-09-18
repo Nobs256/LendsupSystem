@@ -438,6 +438,8 @@ Borrowers List</FONT>
 <a href="field_performance.php" style="color:black; font-size:17px;"> >> Officer Performance</a>
 <a href="clients_with_fines.php" style="color:black; font-size:17px;"> >> Clients Fined</a>
 <a href="clients_with_renews.php" style="color:black; font-size:17px;"> >> Clients Renewed</a>
+<a href="unknown_cash_report.php" style="color:black; font-size:17px;"> >> Unknown Cash Report</a>
+<a href="returned_loans.php" style="color:black; font-size:17px;"> >> Returned Loans</a>
 </div>
 </li>
 <li>
@@ -452,7 +454,8 @@ Borrowers List</FONT>
 <a href="return_loan.php" style="color:black; font-size:17px;"> >> Return Loan</a>
 <a href="search_client_renew.php" style="color:black; font-size:17px;"> >> Renew Loan</a>
  <a href="search_client_give_fine.php" style="color:black; font-size:17px;"> >> Add Fine </a>
-<a href="add_excess_short.php" style="color:black; font-size:17px;"> >> Add Excess</a>
+<a href="search_client_excess.php" style="color:black; font-size:17px;"> >> Add Excess</a>
+<a href="view_excess_shortage.php" style="color:black; font-size:17px;"> >> View Excess/Shortage</a>
 <a href="enter_unknown_cash.php" style="color:black; font-size:17px;"> >> Add Unknown Amount </a>
 
 <!--<a href="search_client_topup.php" style="color:black; font-size:17px;"> >> Add Top-Up</a>

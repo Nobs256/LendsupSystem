@@ -122,10 +122,32 @@ $ex_amount= $selected["cost"];
 $total_exp+=$ex_amount;
 }
 
+//Loans given in parts on this date - every part handed out is a cash out on that day
+$no_parts=0;
+$total_parts_amount=0;
+$total_parts_fee=0;
+$completed_part_clients=array();
+$select = mysqli_query($conn,"SELECT * FROM loans_in_parts WHERE bp_date='$d'
+and usersp_id='$user_id' and bossesp_id='$boss_id'");
+while($selected= mysqli_fetch_array($select)){
+$part_amount=$selected["amount_g"];
+$part_fee=$selected["reg_fee"];
+$total_parts_amount+=$part_amount;
+$total_parts_fee+=$part_fee;
+$no_parts++;
+if($selected["part"]=="Completing"){
+$completed_part_clients[]=$selected["clientp_id"];
+}
+}
+
 $no_loans=0; 
 $select = mysqli_query($conn,"SELECT * FROM loans WHERE b_date='$d' 
 and userse_id='$user_id' and bossese_id='$boss_id'");
 while($selected= mysqli_fetch_array($select)){  
+//skip loans completed from parts on this date - they were already deducted part by part
+if(in_array($selected["cliente_id"], $completed_part_clients)){
+continue;
+}
 $given_loan=$selected["amount_given"];
 $total_given_loan+=$given_loan;
 $no_loans++;
@@ -135,9 +157,18 @@ $no_loans++;
 $select = mysqli_query($conn,"SELECT * FROM loans WHERE b_date='$d' 
  and userse_id='$user_id' and bossese_id='$boss_id'");
 while($selected= mysqli_fetch_array($select)){  
+//skip loans completed from parts on this date - their fee comes from the completing part below
+if(in_array($selected["cliente_id"], $completed_part_clients)){
+continue;
+}
 $reg_fee=$selected["reg_fee"];
 $total_reg_fee+=$reg_fee;
 } 
+
+//add the loan parts given on this date to the loan out and processing fee totals
+$total_given_loan+=$total_parts_amount;
+$total_reg_fee+=$total_parts_fee;
+$no_loans+=$no_parts;
 
 //Uknown
 $total_ukno=0;

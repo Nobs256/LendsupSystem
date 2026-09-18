@@ -129,7 +129,11 @@ xmlhttp.send();
 <hr> 
 <div id="main_heading"> <b>
 EXCESS/SHORTAGE</b> 
-<a href="shortage_recovery.php" style="border: 1px solid green; margin-left:700px; border-radius:1px; font-size:17px; color: green; background-color:white; height:30px; width:150px" 
+<a href="search_client_excess.php" style="border: 1px solid green; margin-left:400px; border-radius:1px; font-size:17px; color: green; background-color:white; height:30px; width:190px" 
+class="button is-default">Add for a Client</a>
+<a href="view_excess_shortage.php" style="border: 1px solid green; margin-left:10px; border-radius:1px; font-size:17px; color: green; background-color:white; height:30px; width:190px" 
+class="button is-default">View Excess/Shortage</a>
+<a href="shortage_recovery.php" style="border: 1px solid green; margin-left:10px; border-radius:1px; font-size:17px; color: green; background-color:white; height:30px; width:150px" 
 class="button is-default">Recover Shortage</a></td> 
 
 </div>     
@@ -209,79 +213,9 @@ class="button is-default">Recover Shortage</a></td>
 	</div>
 </form>
 
-<?php
-$j=0;
-$month=date('m');
-$search_query= mysqli_query($conn,"SELECT * FROM excess_short  where userrec_id='$user_id' and bossrec_id='$boss_id' order by rec_date Desc");
-  
-echo "<div class='table-responsive'>
-<table border=1 style='width:80%;'>
-<thead>
-<tr>
-<th>No</th>
-<th>Date</th>
-<th>Field Officer</th>
-<th>Excess/Shortage</th>
-<th>Amount</th>
- 
-</tr>
-</thead>
-<tbody>";
-
-while($returned_result = mysqli_fetch_assoc($search_query)){
-$j++;
- 
-$amount =number_format($returned_result["paid_amount"]);
-$date = $returned_result["rec_date"]; 
-$excess_short = $returned_result["excess_short"]; 
-$officer_id = $returned_result["officer_id"];
-$officer_name = 'Not assigned';
-if($officer_id){
-	$officer_result = mysqli_fetch_assoc(mysqli_query($conn, "SELECT firstname, lastname FROM officers WHERE officer_id='$officer_id' AND boss_id='$boss_id'"));
-	if($officer_result){
-		$officer_name = $officer_result['firstname'].' '.$officer_result['lastname'];
-	}
-}
-$d=date("d-m-Y", strtotime($date));
- 
- 
-echo "<tr>
-<td><font size=3> $j  </font></td>
-<td><font size=3> $d</font></td>
-<td><font size=3> $officer_name</font></td>
-<td><font size=3> $excess_short</font></td>
-<td><font size=3> $amount</font></td>";
-echo "</tr>";
-}
-
-
-$search_query= mysqli_query($conn,"SELECT * FROM shortage  where userrec_id='$user_id' and bossrec_id='$boss_id'");
-while($returned_result = mysqli_fetch_assoc($search_query)){
-$j++;
- 
-$amount =number_format($returned_result["paid_amount"]);
-$date = $returned_result["rec_date"]; 
-$excess_short ='Shortage';
-$officer_id = $returned_result["officer_id"];
-$officer_name = 'Not assigned';
-if($officer_id){
-	$officer_result = mysqli_fetch_assoc(mysqli_query($conn, "SELECT firstname, lastname FROM officers WHERE officer_id='$officer_id' AND boss_id='$boss_id'"));
-	if($officer_result){
-		$officer_name = $officer_result['firstname'].' '.$officer_result['lastname'];
-	}
-}
-$d=date("d-m-Y", strtotime($date));
-
-echo "<tr>
-<td><font size=3> $j  </font></td>
-<td><font size=3> $d</font></td>
-<td><font size=3> $officer_name</font></td>
-<td><font size=3> $excess_short</font></td>
-<td><font size=3> $amount</font></td>";
-echo "</tr>";
-}
-echo "</tbody></table>";
-?>  
+<div style="margin-top:10px;">
+<a href="view_excess_shortage.php" class="button is-default" style="border: 1px solid green; border-radius:1px; font-size:17px; color: green; background-color:white; height:30px; width:280px">View All Excess/Shortage Records</a>
+</div>
 </div>
 </div>
 </div> 

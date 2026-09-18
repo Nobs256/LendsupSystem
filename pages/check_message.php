@@ -40,7 +40,8 @@ $user_id = $results["user_id"];
 $boss_id = $results["boss_id"];
 $bra = $results["branch"];
 
-$loan_clients = mysqli_num_rows(mysqli_query($conn,"SELECT * FROM clients_with_loan where userseid='$user_id' and bosseseid='$boss_id' and debt>0")); 
+
+$loan_clients = mysqli_num_rows(mysqli_query($conn,"SELECT * FROM clients_with_loan where userseid='$user_id' and bosseseid='$boss_id' and debt>0 and pay_date<='$d'")); 
 
 // --- OPTIMIZED CALCULATIONS ---
 $select = mysqli_query($conn,"SELECT SUM(amount_paid) as total FROM loan_pay where p_date='$d' and userse_id='$user_id' and bossese_id='$boss_id' and mom=0");
@@ -436,7 +437,8 @@ while($selected= mysqli_fetch_array($select)){
     // ADD TO GRAND TOTAL (Removed the typo here)
     $grand_total_field_received += $location_gross; 
 
-    $total_no_clients = mysqli_num_rows(mysqli_query($conn,"SELECT * FROM clients, clients_with_loan  WHERE users_id='$user_id' and bosses_id='$boss_id' and clientsid=client_id and b_location='$location'")); 
+    // Date-aware No. of Clients per location (as at selected date $d)
+    $total_no_clients = mysqli_num_rows(mysqli_query($conn,"SELECT * FROM clients, clients_with_loan  WHERE users_id='$user_id' and bosses_id='$boss_id' and clientsid=client_id and b_location='$location' and pay_date<='$d'")); 
 
     $new_clients_field = mysqli_fetch_row(mysqli_query($conn, "
         SELECT COUNT(DISTINCT l.cliente_id) 

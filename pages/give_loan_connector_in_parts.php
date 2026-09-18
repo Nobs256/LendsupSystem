@@ -15,6 +15,7 @@ $type="Cash_out";
 $mom=0;
 $completed=0; 
 $curr_date=date('Y-m-d');
+$sent_date=date("Y-m-d", strtotime($b_date));
 $pre_date = date('Y-m-d', strtotime("$curr_date -1 day"));
 
 date_default_timezone_set("Africa/Nairobi");
@@ -38,13 +39,13 @@ $msg_date= $result['msg_date'];
 
 $check=countExist($conn,"loans","b_date='$b_date' AND cliente_id='$client_id' and userse_id='$user_id' and bossese_id='$boss_id'  ");
 
-if($b_date>$curr_date){
+if($sent_date>$curr_date){
 echo"<div style='background-color:red; border-radius:5px; color:white; 
 height:40px; margin-left:25px; padding:7px; width: 600px'>Error! You Selected a Wrong Date
 <a href='give_loan.php?client_id=$client_id' style='color:white; margin-left:100px;''>X</a></div>";
 }
 
-else if($b_date<=$msg_date){
+else if($msg_date && $sent_date<=$msg_date){
 echo"<div style='background-color:red; border-radius:5px; color:white; 
 height:40px; margin-left:25px; padding:7px; width: 700px'>You Have Already Sent Report. Not Allowed to Enter this Loan
 <a href='user_homepage.php' style='color:white; margin-left:70px;''>X</a></div>";

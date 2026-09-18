@@ -36,8 +36,9 @@ $tci=0;
 $cs=0;
 $total_op_mom=0;
 
+// Date-aware No. of Clients (as at selected date $d)
 $loan_clients = mysqli_num_rows(mysqli_query($conn,"SELECT * FROM clients_with_loan where 
-userseid='$user_id' and bosseseid='$boss_id' and debt>0")); 
+userseid='$user_id' and bosseseid='$boss_id' and debt>0 and pay_date<='$d'")); 
 
 $results = mysqli_fetch_assoc(mysqli_query($conn,"select user_id, boss_id, ucase(firstname) as firstname, ucase(lastname)as lastname, branch, 
 users_image from new_users where user_id='$user_id'"));
@@ -635,8 +636,8 @@ $returned_result = mysqli_fetch_assoc(mysqli_query($conn,"SELECT SUM(amount) as 
  and officerid='$officer_id' and pay_date='$d'"));     
 $total_paid = $returned_result["totalPaid"];
 
-//total no of clients
-$total_no_clients = mysqli_num_rows(mysqli_query($conn,"SELECT * FROM clients, clients_with_loan  WHERE users_id='$user_id' and bosses_id='$boss_id' and clientsid=client_id and b_location='$location'")); 
+//total no of clients (Date-aware, as at selected date $d)
+$total_no_clients = mysqli_num_rows(mysqli_query($conn,"SELECT * FROM clients, clients_with_loan  WHERE users_id='$user_id' and bosses_id='$boss_id' and clientsid=client_id and b_location='$location' and pay_date<='$d'")); 
 //no of Loans
 
 $no_of_loan = mysqli_num_rows(mysqli_query($conn,"SELECT * FROM loans, clients WHERE cliente_id=client_id and b_date='$d' and userse_id='$user_id' and bossese_id='$boss_id' and b_location='$location'")); 

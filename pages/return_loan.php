@@ -6,24 +6,28 @@ include('header_user.php');
 if (isset($_POST['confirm_return'])) {
     $client_id = mysqli_real_escape_string($conn, $_POST['client_id']);
     $selected_date = mysqli_real_escape_string($conn, $_POST['selected_date']);
-    $current_date = date('Y-m-d');
+    $curr_date = date('Y-m-d');
+    $sent_date = date("Y-m-d", strtotime($selected_date));
+
+    // Check last sent report date (same restriction as user_connector.php)
+    $result = mysqli_fetch_assoc(mysqli_query($conn, "SELECT * from sent_msgs where user_id='$user_id' 
+        and boss_id='$boss_id' order by ts_id DESC Limit 1"));
+    $msg_date = $result ? $result['msg_date'] : '';
 
     // Prevent future dates (Backend fallback)
-    if ($selected_date > $current_date) {
-        $s = "<div style='background-color:red; border-radius:5px; color:white; height:auto; margin-left:25px; padding:7px; width: 500px'>
-                Error: You cannot select a date beyond the current date.
+    if ($sent_date > $curr_date) {
+        $s = "<div style='background-color:red; border-radius:5px; color:white; height:auto; margin-left:25px; padding:7px; width: 700px'>
+                Error! Select Correct date. You have selected a date above today!
                 <a href='return_loan.php' style='color:white; float:right;'>X</a>
               </div>";
-    } else {
-        // Check if a report for this date has already been sent
-        $report_check = mysqli_query($conn, "SELECT * FROM sent_msgs WHERE msg_date = '$selected_date' AND user_id = '$user_id' AND boss_id = '$boss_id'");
-        
-        if (mysqli_num_rows($report_check) > 0) {
-            $s = "<div style='background-color:red; border-radius:5px; color:white; height:auto; margin-left:25px; padding:7px; width: 600px'>
-                    Error: You have already sent a report for $selected_date. You cannot return a loan for this date.
-                    <a href='return_loan.php' style='color:white; float:right;'>X</a>
-                  </div>";
-        } else {
+    }
+    else if ($msg_date && $sent_date <= $msg_date) {
+        $s = "<div style='background-color:red; border-radius:5px; color:white; height:auto; margin-left:25px; padding:7px; width: 700px'>
+                You Have Already Sent Report. Not Allowed to make this Transaction
+                <a href='user_homepage.php' style='color:white; float:right;'>X</a>
+              </div>";
+    }
+    else {
             // Fetch current loan details restricted to current user/branch
             $loan_check = mysqli_query($conn, "SELECT * FROM clients_with_loan WHERE clientsid='$client_id' AND bosseseid='$boss_id' AND userseid='$user_id' LIMIT 1");
             
@@ -86,7 +90,6 @@ if (isset($_POST['confirm_return'])) {
                         <a href='return_loan.php' style='color:white; float:right;'>X</a>
                       </div>";
             }
-        }
     }
 }
 ?>

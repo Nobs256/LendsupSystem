@@ -55,6 +55,9 @@ $tomorow  = date("Y-m-d", strtotime("$d +1 day"));
 $date=$d;
 }
 
+
+$loan_clients = mysqli_num_rows(mysqli_query($conn,"SELECT * FROM clients_with_loan where userseid='$user_id' and bosseseid='$boss_id' and debt>0 and pay_date<='$d'"));
+
 $row = mysqli_fetch_assoc(mysqli_query($conn,"SELECT IFNULL(SUM(amount_paid), 0) AS total FROM loan_pay WHERE p_date='$d' AND userse_id='$user_id' AND bossese_id='$boss_id' AND mom=0"));
 $total_amount = $row['total'];
 
@@ -250,8 +253,8 @@ $completed = $row['total'];
 $row = mysqli_fetch_assoc(mysqli_query($conn,"SELECT COUNT(*) AS total FROM loan_pay, clients WHERE userse_id='$user_id' AND bossese_id='$boss_id' AND p_date='$d' AND client_id=clients_id"));
 $clients_paid = $row['total'];
 
-//payment Rate
-$payment_rate=ceil($clients_paid/$loan_clients*100);
+//payment Rate (guard against division by zero when there were no clients on the selected date)
+$payment_rate=($loan_clients>0)?ceil($clients_paid/$loan_clients*100):0;
 
 //New Clients
 $nc_query = mysqli_query($conn, "SELECT cliente_id FROM loans WHERE userse_id='$user_id' AND bossese_id='$boss_id' GROUP BY cliente_id HAVING COUNT(loan_id)=1 AND MAX(b_date)='$d'");
@@ -499,8 +502,8 @@ while($selected= mysqli_fetch_array($select)){
     $officer_row_total = $officer_paid + $officer_unknown_cash;
     $field_total_amount += $officer_row_total;
 
-    //total no of clients
-    $row = mysqli_fetch_assoc(mysqli_query($conn,"SELECT COUNT(*) AS total FROM clients, clients_with_loan WHERE users_id='$user_id' and bosses_id='$boss_id' and clientsid=client_id and b_location='$location'"));
+    // Date-aware No. of Clients per location (as at selected date $d)
+    $row = mysqli_fetch_assoc(mysqli_query($conn,"SELECT COUNT(*) AS total FROM clients, clients_with_loan WHERE users_id='$user_id' and bosses_id='$boss_id' and clientsid=client_id and b_location='$location' and pay_date<='$d'"));
     $total_no_clients = $row['total'];
 
     //total no of loans

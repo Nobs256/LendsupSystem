@@ -101,8 +101,73 @@ COMMIT;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 
 
-ALTER TABLE excess_short
-  ADD COLUMN IF NOT EXISTS officer_id BIGINT(22) NOT NULL DEFAULT 0 AFTER bossrec_id;
+-- ALTER TABLE excess_short
+--   ADD COLUMN IF NOT EXISTS officer_id BIGINT(22) NOT NULL DEFAULT 0 AFTER bossrec_id;
 
 ALTER TABLE shortage
   ADD COLUMN IF NOT EXISTS officer_id BIGINT(22) NOT NULL DEFAULT 0 AFTER bossrec_id;
+
+ALTER TABLE completed_loan
+  ADD COLUMN IF NOT EXISTS intrests BIGINT(22) NOT NULL DEFAULT 20 AFTER completed;
+
+
+
+
+
+SELECT
+    e.ts_id                                 AS error_log_id,
+    e.pay_date                              AS date_correction_was_logged,
+    e.pre_amount                            AS old_loan_amount,
+    e.amount                                AS new_loan_amount,
+    fp.ts_id                                AS field_payment_id,
+    fp.clientf_id                           AS client_id,
+    CONCAT(c.firstname, ' ', c.lastname)    AS client_name,
+    fp.pay_date                             AS field_payment_date_now,
+    fp.amount                               AS field_payment_amount_now,
+    l.loan_id                               AS edited_loan_id,
+    l.b_date                                AS loan_date_after_edit,
+    l.amount_given                          AS loan_amount,
+    (l.amount_given * 1.2 / 30)             AS expected_daily_payment
+FROM errors e
+JOIN loans l
+      ON l.cliente_id  = e.clients_id
+     AND l.bossese_id  = e.boss_id
+     AND l.amount_given = e.amount              -- loan now carries the "new" amount from the error log
+JOIN field_payment fp
+      ON fp.clientf_id = e.clients_id
+     AND fp.boss_id    = e.boss_id
+     AND fp.mom        = 0
+     AND fp.amount     = e.amount              -- collection amount == loan amount (was overwritten)
+LEFT JOIN clients c ON c.client_id = fp.clientf_id
+WHERE e.error = 'Changing Loan Given'
+  -- a genuine cash collection would almost never equal the full loan amount
+  AND fp.amount <> ROUND(l.amount_given * 1.2 / 30)
+ORDER BY e.clients_id, fp.pay_date;
+
+
+
+
+
+INSERT INTO completed_loan 
+    (loans_no, clientcpid, userscpid, bosscpid, pay_date, e_date, amount_given, completed, intrests)
+SELECT 
+    cwl.loan_no,
+    cwl.clientsid,
+    cwl.userseid,
+    cwl.bosseseid,
+    cwl.pay_date,                                    -- date loan was given
+    DATE_ADD(cwl.pay_date, INTERVAL cwl.days DAY),   -- expected end date
+    cwl.amount_given,
+    1,                                               -- completed flag
+    20                                               -- interest percentage
+FROM clients_with_loan cwl
+WHERE cwl.pay_date >= '2026-08-27'
+  AND cwl.pay_date <= CURDATE()
+  AND NOT EXISTS (
+        SELECT 1 
+        FROM completed_loan cl 
+        WHERE cl.clientcpid = cwl.clientsid
+          AND cl.loans_no   = cwl.loan_no
+  )
+ORDER BY cwl.pay_date ASC;
+

@@ -85,7 +85,30 @@ userseid='$user_id' and clientsid='$client_id'");
 $now=mysqli_fetch_array($hup);
 $debt=$now["debt"];
 
-if($debt==0){
+//check if the client has an incomplete loan in parts (parts recorded but loan not yet completed)
+//the loan_no of an in-progress parts loan is (number of loans already given)+1, same logic used by the connector
+$loan_count = mysqli_num_rows(mysqli_query($conn,"SELECT * FROM loans where cliente_id='$client_id' and userse_id='$user_id' and bossese_id='$boss_id'"));
+$next_loan_no = $loan_count+1;
+
+$part_check = mysqli_num_rows(mysqli_query($conn,"SELECT * FROM loans_in_parts where clientp_id='$client_id' and usersp_id='$user_id' and bossesp_id='$boss_id' and loan_no='$next_loan_no'"));
+
+if($debt==0 && $part_check>0){
+
+echo "<tr>
+<td><font size=2> $client_id </font></td>
+<td><font size=2> $name </font></td>
+<td><font size=2> $phone </font></td>                   
+<td><font size=2> $business</font></td>
+<td><font size=2> $b_location</font></td>                  
+<td>
+<a href='give_loan_in_parts.php?client_id=$client_id'><font size=4 color=red><b>COMPLETE LOAN IN PART</b></font></a>
+
+</td>";
+
+echo "</tr>";
+}
+
+else if($debt==0){
 
 echo "<tr>
 <td><font size=2> $client_id </font></td>

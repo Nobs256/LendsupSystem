@@ -447,6 +447,7 @@ CREATE TABLE `excess_short` (
   `userrec_id` bigint(22) NOT NULL,
   `bossrec_id` bigint(10) NOT NULL,
   `officer_id` bigint(22) NOT NULL DEFAULT 0,
+  `client_id` bigint(22) NOT NULL DEFAULT 0,
   `rec_date` date NOT NULL,
   `excess_short` varchar(15) NOT NULL,
   `paid_amount` bigint(10) NOT NULL,
@@ -986,6 +987,7 @@ CREATE TABLE `shortage` (
   `userrec_id` bigint(22) NOT NULL,
   `bossrec_id` bigint(10) NOT NULL,
   `officer_id` bigint(22) NOT NULL DEFAULT 0,
+  `client_id` bigint(22) NOT NULL DEFAULT 0,
   `rec_date` date NOT NULL,
   `paid_amount` bigint(10) NOT NULL,
   `recovered` bigint(4) NOT NULL

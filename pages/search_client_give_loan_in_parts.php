@@ -8,23 +8,23 @@ $success_reg="";
 include('conn.php');
  
 
-if(isset($_GET['delete_client'])){
-$client_id = $_GET['delete_client'];
+// if(isset($_GET['delete_client'])){
+// $client_id = $_GET['delete_client'];
 
-mysqli_query($conn,"DELETE FROM clients WHERE client_id='$client_id'");
-mysqli_query($conn,"DELETE FROM clients WHERE client_id='$client_id'");
-mysqli_query($conn,"DELETE FROM loans WHERE cliente_id='$client_id'");	
-mysqli_query($conn,"DELETE FROM loan_pay WHERE clients_id='$client_id'");
-mysqli_query($conn,"DELETE FROM clients_with_loan WHERE clientsid='$client_id'");
-mysqli_query($conn,"DELETE FROM completed_loan WHERE clientcpid='$client_id'");
+// mysqli_query($conn,"DELETE FROM clients WHERE client_id='$client_id'");
+// mysqli_query($conn,"DELETE FROM clients WHERE client_id='$client_id'");
+// mysqli_query($conn,"DELETE FROM loans WHERE cliente_id='$client_id'");	
+// mysqli_query($conn,"DELETE FROM loan_pay WHERE clients_id='$client_id'");
+// mysqli_query($conn,"DELETE FROM clients_with_loan WHERE clientsid='$client_id'");
+// mysqli_query($conn,"DELETE FROM completed_loan WHERE clientcpid='$client_id'");
 
-$success_reg = "<div style='background-color:#006F37; border-radius:5px; color:white; 
-height:40px; margin-left:0px; padding:10px; width: 700px'>
-<font color=white>A Client is Successfully Deleted!! </font>
-<a href='view_clients.php?reload=1' style='color:white; margin-left:350px;''>X</a>
-</div>";
+// $success_reg = "<div style='background-color:#006F37; border-radius:5px; color:white; 
+// height:40px; margin-left:0px; padding:10px; width: 700px'>
+// <font color=white>A Client is Successfully Deleted!! </font>
+// <a href='view_clients.php?reload=1' style='color:white; margin-left:350px;''>X</a>
+// </div>";
 
-}
+// }
 
 include('header_user.php');
 ?>
