@@ -24,6 +24,20 @@ padding-top: 2px;
 if(isset($_GET['client_id'])){
 $client_id = $_GET['client_id'];
 
+// ---- Auto-heal on view (ACTIVE LOANS ONLY) ---------------------------------
+// Recalculate and repair the active loan ledger BEFORE the book queries below,
+// so the payment table and the Current Debt line show corrected figures on this
+// same load. No active register row => silent no-op; already-correct => read only.
+$__loan_helper = __DIR__ . '/../../Admin/includes/loan_helpers.php';
+if (is_file($__loan_helper)) {
+    require_once $__loan_helper;
+    if (function_exists('autoheal_active_loan')) {
+        $__apply_heal = defined('LOAN_AUTOHEAL_ON_VIEW') ? LOAN_AUTOHEAL_ON_VIEW : true;
+        $__heal = autoheal_active_loan($conn, null, $client_id, $user_id, $boss_id, $__apply_heal);
+        render_autoheal_notice($__heal, 'legacy');
+    }
+}
+
 $result = mysqli_fetch_assoc(mysqli_query($conn,"select ucase(firstname) as firstname, ucase(lastname)as lastname, phone 
 from clients where client_id='$client_id'"));     
 $name= $result['firstname']." ".$result['lastname'];

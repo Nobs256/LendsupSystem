@@ -88,6 +88,10 @@ VALUES (NULL, '$user_id', '$boss_id', '$client_id',  '$b_date', '$names',  '$typ
 
 mysqli_query($conn,"DELETE FROM demand WHERE clientde_id='$client_id'");
 
+//this is where the sms_api_loan.php is included in the system (loan-given SMS)
+$amount_msg=0;
+include('sms_api_loan.php');
+
 echo"<div style='background-color:#006F37; border-radius:5px; color:white; 
 height:40px; margin-left:25px; padding:7px; width: 400px'>Data Saved Successfully!
 <a href='pay_loan_entry.php?client_id=$client_id' style='color:white; margin-left:100px;''>Enter Balance</a></div>";

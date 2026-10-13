@@ -275,9 +275,8 @@ display: none;
 background-color: white;
 padding-left: 8px;
 margin-left: 7px;
-width: 16%;
-position : fixed;
- 
+width: auto;
+position: static;
 }
 
 /* Optional: Style the caret down icon */
@@ -365,7 +364,34 @@ table[border="1"] {
   border-collapse: collapse !important;
   border: 1px solid #6A6A6A !important;
 }
-  
+
+.user-sidebar {
+  top: 52px;
+  bottom: 0;
+  min-height: 0;
+  display: flex;
+}
+
+.user-sidebar-menu {
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.user-sidebar-links {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.user-cash-widget {
+  flex: 0 0 auto;
+  position: relative;
+}
+ 
 </style>
 </head>
 <body>
@@ -405,9 +431,10 @@ style="background-color:#6A6A6A; border-radius:35px; ">
 
 <div class="wrapper" style="background-color:white; height:600px;  position: fixed; overflow-x: hidden">
 <div class="columns" style="width:2000px" style="background-color:#6A6A6A;">
-<aside class="column is-2 aside" style="background-color:#E4E4E4; height:700px; width: 20%; margin-top:12px;  
+<aside class="column is-2 aside user-sidebar" style="background-color:#E4E4E4; width: 20%; margin-top:12px;  
  position: fixed; overflow-x: hidden">
-<nav class="menu" style="background-color:#EAEAEA; width: 90%; margin-left:10px;  border-radius: 5px;  ">
+<nav class="menu user-sidebar-menu" style="background-color:#EAEAEA; width: 90%; margin-left:10px;  border-radius: 5px;  ">
+<div class="user-sidebar-links">
 <ul class="menu-list">
 <li><a class="dd" href="user_homepage.php" style="background-color:#006F37; color:white">
 <p align="center"><font size="4" face="Verdana, Arial, Helvetica, sans-serif">
@@ -430,16 +457,23 @@ Borrowers List</FONT>
 <i class="fa fa-caret-down"></i>
 </button>
 <div class="dropdown-container">
-<a href="defaulters.php" style="color:black; font-size:17px;"> >> All Defaulters</a>  
+<a href="officer_cashouts_report.php" style="color:black; font-size:17px;"> >> officer cashouts</a> 
+<a href="defaulters.php" style="color:black; font-size:17px;"> >> All Defaulters</a>
+  <a href="returned_loans.php" style="color:black; font-size:17px;"> >> Returned Loans</a>
+<a href="unknown_withdraw_history.php" style="color:black; font-size:17px;"> >> Unknown Cash Withdraw</a>
+<a href="clients_advance.php" style="color:black; font-size:17px;"> >> Clients with Advance</a>
+<a href="cleared_loans.php" style="color:black; font-size:17px;"> >> Cleared Loans</a>
 <a href="clients_not_paid.php" style="color:black; font-size:17px;"> >> Clients Not Paid</a>
 <a href="clients_with_out.php" style="color:black; font-size:17px;"> >>Clients With Out Loans</a> 
 <a href="all_loans_given_out.php" style="color:black; font-size:17px;"> >> All Loan Given out</a>
 <a href="clients_completed_loan.php" style="color:black; font-size:17px;"> >> Completed Loans</a>
+<a href="guarantors_and_security.php" style="color:black; font-size:17px;"> >> Guarantors and Security</a>
 <a href="field_performance.php" style="color:black; font-size:17px;"> >> Officer Performance</a>
 <a href="clients_with_fines.php" style="color:black; font-size:17px;"> >> Clients Fined</a>
 <a href="clients_with_renews.php" style="color:black; font-size:17px;"> >> Clients Renewed</a>
-<a href="unknown_cash_report.php" style="color:black; font-size:17px;"> >> Unknown Cash Report</a>
-<a href="returned_loans.php" style="color:black; font-size:17px;"> >> Returned Loans</a>
+
+<a href="view_excess_shortage.php" style="color:black; font-size:17px;"> >> View Excess</a>
+<a href="unknown_cash_report.php" style="color:black; font-size:17px;"> >> Unknown Cash</a>
 </div>
 </li>
 <li>
@@ -453,9 +487,9 @@ Borrowers List</FONT>
 <a href="search_client_pay_loan.php" style="color:black; font-size:17px;"> >> Loan Payment</a>
 <a href="return_loan.php" style="color:black; font-size:17px;"> >> Return Loan</a>
 <a href="search_client_renew.php" style="color:black; font-size:17px;"> >> Renew Loan</a>
- <a href="search_client_give_fine.php" style="color:black; font-size:17px;"> >> Add Fine </a>
+<!-- <a href="search_client_give_fine.php" style="color:black; font-size:17px;"> >> Add Fine </a>-->
 <a href="search_client_excess.php" style="color:black; font-size:17px;"> >> Add Excess</a>
-<a href="view_excess_shortage.php" style="color:black; font-size:17px;"> >> View Excess/Shortage</a>
+
 <a href="enter_unknown_cash.php" style="color:black; font-size:17px;"> >> Add Unknown Amount </a>
 
 <!--<a href="search_client_topup.php" style="color:black; font-size:17px;"> >> Add Top-Up</a>
@@ -475,8 +509,8 @@ Borrowers List</FONT>
 <a href="add_client_data_entry.php" style="color:black; font-size:17px;"> >> Add Clients</a>
 <a href="search_client_give_data_entry.php" style="color:black; font-size:17px;"> >> Enter Loans</a>
 <a href="search_client_pay_loan_entry.php" style="color:black; font-size:17px;"> >> Change Balance</a>
-<a href="search_client_clear_balance.php" style="color:black; font-size:17px;"> >> Clear the Balance</a>
-<a href="enter_op.php" style="color:black; font-size:17px;"> >> Enter OP</a>
+<!--<a href="search_client_clear_balance.php" style="color:black; font-size:17px;"> >> Clear the Balance</a>
+<a href="enter_op.php" style="color:black; font-size:17px;"> >> Enter OP</a>-->
 
 </div>
 </li>
@@ -494,7 +528,7 @@ Borrowers List</FONT>
 </div>
 </li>
 -->
-<li>
+<!--<li>
 <button class="dropdown-btn"><font color="black">+Withdraws</font>
 <i class="fa fa-caret-down"></i>
 </button>
@@ -502,12 +536,12 @@ Borrowers List</FONT>
 <a href="withdraw_unknown_cash.php" style="color:black; font-size:17px;"> >> Unknown Cash</a>
 <a href="withdraws.php" style="color:black; font-size:17px;"> >> Withdraw Excess</a>
  
-<!--<a href="mom_withdraws.php" style="color:black; font-size:17px;"> >> MOM Withdraws</a>
+<a href="mom_withdraws.php" style="color:black; font-size:17px;"> >> MOM Withdraws</a>
 <a href="unknown.php" style="color:black; font-size:17px;"> >> Unknown Source</a>
 <a href="withdraw_mom_charges.php" style="color:black; font-size:17px;"> >> Withdraw Charges</a>
--->
+
 </div>
-</li>
+</li>-->
 <!--
 <li> <button class="dropdown-btn"><font color="black">+Savings</font>
 <i class="fa fa-caret-down"></i>
@@ -521,25 +555,12 @@ Borrowers List</FONT>
 </div>
 </li>
 -->
- 
-<li>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-
-</li>
-<li>
-<div style="background-color:white; width:96%; padding-left:10px; font-size:18px; 
+</ul>
+</div>
+<div class="user-cash-widget" style="background-color:white; width:96%; padding-left:10px; font-size:18px; 
 border-radius: 3px; border: 3px solid #006F37; ">
 <?Php include('cash_at_hand.php'); ?>
 </div>
-</li>
-</ul>
 </nav>
 </aside>
 <script>
@@ -572,4 +593,3 @@ function myFunction() {
   }
 }
 </script>
-

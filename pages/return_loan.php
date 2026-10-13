@@ -57,8 +57,17 @@ if (isset($_POST['confirm_return'])) {
                         $processing_fee = $fee_data['reg_fee'];
                     }
 
-                    // Calculate actual cash in securely on backend
-                    $actual_cash_in = $amount_returned - $processing_fee;
+                    // Calculate default cash in securely on backend (used as fallback)
+                    $default_cash_in = $amount_returned - $processing_fee;
+
+                    // Use the user-entered amount if valid, otherwise fall back to calculated value
+                    $entered_amount = isset($_POST['returned_amount']) ? trim($_POST['returned_amount']) : '';
+                    $entered_amount = str_replace(',', '', $entered_amount); // Remove thousand separators
+                    if (is_numeric($entered_amount) && (float)$entered_amount > 0) {
+                        $actual_cash_in = round((float)$entered_amount, 2);
+                    } else {
+                        $actual_cash_in = $default_cash_in;
+                    }
 
                     // Record returned loan entry using selected date
                     mysqli_query($conn, "INSERT INTO loan_returned (client_id, user_id, boss_id, date, amount_returned) 
@@ -227,8 +236,8 @@ if (isset($_POST['confirm_return'])) {
         <label>Select Return Date:</label>
         <input type="date" name="selected_date" id="modal_selected_date" max="<?php echo date('Y-m-d'); ?>" required>
         
-        <label>Return Amount (Principal - Processing Fee):</label>
-        <input type="text" id="modal_amount_display" class="modal-readonly" readonly>
+        <label>Return Amount (Editable - Default: Principal - Processing Fee):</label>
+        <input type="text" name="returned_amount" id="modal_amount_display" required oninput="syncReturnedAmount()">
         
         <div class="btn-group">
             <button type="button" class="btn-cancel" onclick="closeReturnModal()">Cancel</button>
@@ -251,8 +260,16 @@ if (isset($_POST['confirm_return'])) {
         let processingFee = parseFloat(fee) || 0;
         let actualReturn = amount - processingFee;
         
-        // Format with commas for display
-        document.getElementById('modal_amount_display').value = actualReturn.toLocaleString('en-US');
+        // Prefill with the calculated default (user can edit it)
+        document.getElementById('modal_amount_display').value = actualReturn.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 2});
+        syncReturnedAmount();
+    }
+
+    function syncReturnedAmount() {
+        // Strip commas and keep only valid numeric characters so a clean number is submitted
+        let displayField = document.getElementById('modal_amount_display');
+        let raw = displayField.value.replace(/,/g, '').replace(/[^0-9.]/g, '');
+        displayField.value = raw !== '' ? (parseFloat(raw).toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 2})) : '';
     }
 
     function closeReturnModal() {

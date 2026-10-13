@@ -1,14 +1,12 @@
 <?php
-$sa="";
+$sa = "";
 include('header_user.php');
 
-$result = mysqli_fetch_assoc(mysqli_query($conn,"SELECT * from total_msg where user_id='$user_id' 
-and boss_id='$boss_id'")); 
-$total_msg= $result['total'];
+$result = mysqli_fetch_assoc(mysqli_query($conn, "SELECT * from total_msg where user_id='$user_id' and boss_id='$boss_id'")); 
+$total_msg = isset($result['total']) ? $result['total'] : 0;
 
-$result = mysqli_fetch_assoc(mysqli_query($conn,"SELECT * from sent_msgs where user_id='$user_id' 
-and boss_id='$boss_id' order by ts_id DESC Limit 1")); 
-$msg_date= $result['msg_date'];
+$result = mysqli_fetch_assoc(mysqli_query($conn, "SELECT * from sent_msgs where user_id='$user_id' and boss_id='$boss_id' order by ts_id DESC Limit 1")); 
+$msg_date = isset($result['msg_date']) ? $result['msg_date'] : '';
 
 ?>
 <style type="text/css">
@@ -48,10 +46,10 @@ echo"
 <font color='#E4E4E4'>--</font>
 </td><td>
 
-<form  method='post'> 
+<form method='post'> 
 Field Officer:                    
  
-<select  name='officer_id'  style='width:140px; border: 1px solid #006F37; height:25px' required> 
+<select name='officer_id' style='width:140px; border: 1px solid #006F37; height:25px' required> 
 <option></option> ";
 $comb = mysqli_query($conn,"SELECT * from officers where boss_id='$boss_id' and active=1 and branch='$bra'");
 
@@ -87,28 +85,15 @@ $pay_date = $_POST['p_date'];
   
 $not_report_sent = date('Y-m-d', strtotime("$pay_date -1 day"));
   
-$report=0;
-if($pay_date <=$msg_date){
-$report=1;
-echo"<div style='background-color:red; border-radius:5px; color:white; 
-height:40px; margin-left:25px; padding:7px; width: 700px'>You Have Already Sent Report. Not Allowed to make this Payment
-<a href='user_homepage.php' style='color:white; margin-left:70px;''>X</a></div>";
+$report = 0;
+// Convert dates to timestamps for robust comparison
+if(!empty($msg_date) && !empty($pay_date) && strtotime($pay_date) <= strtotime($msg_date)){
+    $report = 1;
+    echo "<div style='background-color:red; border-radius:5px; color:white; height:40px; margin-left:25px; padding:7px; width: 700px'>
+            You Have Already Sent Report. Not Allowed to make this Payment
+            <a href='user_homepage.php' style='color:white; margin-left:70px;'>X</a>
+          </div>";
 }
-
-if($not_report_sent>$msg_date){
-$report=2;
-echo"<div style='background-color:red; border-radius:5px; color:white; 
-height:40px; margin-left:25px; padding:7px; width: 700px'>You have not sent a report, First send a report to Your Boss!! $not_report_sent
-<a href='user_homepage.php' style='color:white; margin-left:70px;''>X</a></div>";
-}
-/*
-if($total_msg <=0){
-$report=1;
-echo"<div style='background-color:red; border-radius:5px; color:white; 
-height:40px; margin-left:25px; padding:7px; width: 700px'>You Have No SMS Left on Your Account! Call 0777842873
-<a href='user_homepage.php' style='color:white; margin-left:70px;''>X</a></div>";
-}
-*/
 ?>
 <div id="list_cont"><?php echo $sa; ?></div>
 <?php
@@ -121,7 +106,7 @@ $phone  = $returned_result["phone"];
 
 //total Paid
 $total_amount=0;
-$select = mysqli_query($conn,"SELECT * FROM field_payment where  pay_date='$pay_date' 
+$select = mysqli_query($conn,"SELECT * FROM field_payment where pay_date='$pay_date' 
  and user_id='$user_id' and boss_id='$boss_id' and officerid='$officer_id' and mom=0");
 while($selected= mysqli_fetch_array($select)){  
 $amount= $selected["amount"]; 
@@ -130,7 +115,7 @@ $total_amount+=$amount;
 
 //total Paid
 $total_unknown_cash=0;
-$select = mysqli_query($conn,"SELECT * FROM unknown_cash where  unknown_date='$pay_date' 
+$select = mysqli_query($conn,"SELECT * FROM unknown_cash where unknown_date='$pay_date' 
  and user_id='$user_id' and boss_id='$boss_id' and officer='$officer_id'");
 while($selected= mysqli_fetch_array($select)){  
 $amount= $selected["amount"]; 
@@ -140,7 +125,7 @@ $total_unknown_cash+=$amount;
 //Total deposite using MOM
 $total_amount_mom=0;
  
-$select = mysqli_query($conn,"SELECT * FROM field_payment where  pay_date='$pay_date' 
+$select = mysqli_query($conn,"SELECT * FROM field_payment where pay_date='$pay_date' 
  and user_id='$user_id' and boss_id='$boss_id' and officerid='$officer_id' and mom=1");
 while($selected= mysqli_fetch_array($select)){  
 $amount= $selected["amount"]; 
@@ -203,26 +188,40 @@ $j++;
 echo "<tr>
 <td> $j </td>
 <td> $name </td>
-<td> $phone <br>$b_location</td>
-
+<td> $phone <br>($b_location)</td>
 <td> $debt</td>           
-<td> $daily_p</td>
-<td>
+<td> $daily_p</td>";
 
-<form method='post' action='pay_for_officers_connector.php' >
-<input type='hidden' name='boss_id' value='$boss_id'>
-<input type='hidden' name='user_id' value='$user_id'>
-<input type='hidden' name='client_id' value='$client_id'>
-<input type='hidden' name='loan_no' value='$loan_no'>
-<input type='hidden' name='b_date' value='$pay_date'>
-<input type='hidden' name='officer_id' value='$officer_id'>
-<input type='hidden' name='report' value='$report'>
-<input type='text' name='amo' class='input is-success' style='width:100px; height:30px; border: 1px solid #006F37'></td>
-<td>
-
-<button type='submit' name=field_pay style='border: 1px solid #7C7C7C; border-radius:3px; font-size:17px; 
-color: green; background-color:white; height:30px; width:80px'>
-&nbsp;Pay  &nbsp;</button></form></td>";
+if($report == 1) {
+    // Report is already sent on/after this date: Disable input fields and pay button
+    echo "<td>
+            <input type='text' disabled placeholder='Disabled' class='input' style='width:100px; height:30px; border: 1px solid #ccc; background-color:#e0e0e0; cursor:not-allowed;'>
+          </td>
+          <td>
+            <button disabled type='button' style='border: 1px solid #ccc; border-radius:3px; font-size:17px; color: #aaa; background-color:#f5f5f5; height:30px; width:80px; cursor:not-allowed;'>
+            &nbsp;Pay&nbsp;
+            </button>
+          </td>";
+} else {
+    // Report not sent yet: Enable inputs and payment submission form
+    echo "<td>
+            <form method='post' action='pay_for_officers_connector.php'>
+            <input type='hidden' name='boss_id' value='$boss_id'>
+            <input type='hidden' name='user_id' value='$user_id'>
+            <input type='hidden' name='client_id' value='$client_id'>
+            <input type='hidden' name='loan_no' value='$loan_no'>
+            <input type='hidden' name='b_date' value='$pay_date'>
+            <input type='hidden' name='officer_id' value='$officer_id'>
+            <input type='hidden' name='report' value='$report'>
+            <input type='text' name='amo' class='input is-success' style='width:100px; height:30px; border: 1px solid #006F37'>
+          </td>
+          <td>
+            <button type='submit' name='field_pay' style='border: 1px solid #7C7C7C; border-radius:3px; font-size:17px; color: green; background-color:white; height:30px; width:80px'>
+            &nbsp;Pay&nbsp;
+            </button>
+            </form>
+          </td>";
+}
 echo "</tr>";
 
 }
@@ -320,33 +319,33 @@ $sa="";
 if(isset($_GET['greater_balance'])){
 $sa = "<div style='background-color:red; border-radius:5px; color:white; 
 height:40px; margin-left:25px; padding:7px; width: 600px'>Error! The Amount entered is greater than balance
-<a href='pay_for_officers.php?officer_id=$officer_id' style='color:white; margin-left:100px;''>X</a></div>";
+<a href='pay_for_officers.php?officer_id=$officer_id' style='color:white; margin-left:100px;'>X</a></div>";
 }
 
 if(isset($_GET['reportsent'])){
 $sa = "<div style='background-color:red; border-radius:5px; color:white; 
 height:40px; margin-left:25px; padding:7px; width: 600px'>Error! The Report is already Sent
-<a href='user_homepage.php' style='color:white; margin-left:100px;''>X</a></div>";
+<a href='user_homepage.php' style='color:white; margin-left:100px;'>X</a></div>";
 }
   
 if(isset($_GET['reportnotsent'])){
 $sa = "<div style='background-color:red; border-radius:5px; color:white; 
 height:40px; margin-left:25px; padding:7px; width: 600px'>Error! The Previous Report is not Sent. First send report to the Boss!!
-<a href='user_homepage.php' style='color:white; margin-left:100px;''>X</a></div>";
+<a href='user_homepage.php' style='color:white; margin-left:100px;'>X</a></div>";
 }
 
 if(isset($_GET['wrong_date'])){
 
 $sa = "<div style='background-color:red; border-radius:5px; color:white; 
 height:40px; margin-left:25px; padding:7px; width: 600px'>Error! You are beyond recommended time!!
-<a href='pay_for_officers.php?officer_id=$officer_id' style='color:white; margin-left:100px;''>X</a></div>"; 
+<a href='pay_for_officers.php?officer_id=$officer_id' style='color:white; margin-left:100px;'>X</a></div>"; 
 }
 
 if(isset($_GET['wrong_date2'])){
 
 $sa = "<div style='background-color:red; border-radius:5px; color:white; 
 height:40px; margin-left:25px; padding:7px; width: 600px'>Error! The Date Entered is less than the Date Last Paid!!
-<a href='pay_for_officers.php?officer_id=$officer_id' style='color:white; margin-left:100px;''>X</a></div>"; 
+<a href='pay_for_officers.php?officer_id=$officer_id' style='color:white; margin-left:100px;'>X</a></div>"; 
 }
 
 if(isset($_GET['paid'])){
@@ -376,9 +375,8 @@ style='padding-top:0px; border: 0px solid #006F37; border-radius:4px; height:15p
 </form>
 </td>
 <td>
-<a href='pay_for_officers.php?reload=1' style='color:white; margin-left:100px;''>No</a>
+<a href='pay_for_officers.php?reload=1' style='color:white; margin-left:100px;'>No</a>
 </td></tr></table>
-
 
 </div>"; 
 }
@@ -387,7 +385,7 @@ if(isset($_GET['success'])){
 
 echo"<div style='background-color:#006F37; border-radius:5px; color:white; 
 height:40px; margin-left:25px; padding:5px; width: 430px'>Loan is Successfully Paid!
-<a href='pay_for_officers.php?officer_id=$officer_id' style='color:white; margin-left:100px;''>X</a>
+<a href='pay_for_officers.php?officer_id=$officer_id' style='color:white; margin-left:100px;'>X</a>
 </div>"; 
 }
  
@@ -404,7 +402,7 @@ $phone = $returned_result["phone"];
  
 //total Paid
 $total_amount=0;
-$select = mysqli_query($conn,"SELECT * FROM field_payment where  pay_date='$pay_date' 
+$select = mysqli_query($conn,"SELECT * FROM field_payment where pay_date='$pay_date' 
  and user_id='$user_id' and boss_id='$boss_id' and officerid='$officer_id' and mom=0");
 while($selected= mysqli_fetch_array($select)){  
 $amount= $selected["amount"]; 
@@ -414,7 +412,7 @@ $total_amount+=$amount;
 //Total deposite using MOM
 $total_amount_mom=0;
  
-$select = mysqli_query($conn,"SELECT * FROM field_payment where  pay_date='$pay_date' 
+$select = mysqli_query($conn,"SELECT * FROM field_payment where pay_date='$pay_date' 
  and user_id='$user_id' and boss_id='$boss_id' and officerid='$officer_id' and mom=1");
 while($selected= mysqli_fetch_array($select)){  
 $amount= $selected["amount"]; 
@@ -455,7 +453,11 @@ style="width:50%; height:30%; font-size:12px; border: 1px solid #006F37" align="
 
 $j=0;
 $report=0;
-$search_query= mysqli_query($conn,"SELECT * FROM clients, clients_with_loan  where users_id='$user_id' 
+if(!empty($msg_date) && !empty($pay_date) && strtotime($pay_date) <= strtotime($msg_date)){
+    $report = 1;
+}
+
+$search_query= mysqli_query($conn,"SELECT * FROM clients, clients_with_loan where users_id='$user_id' 
 and bosses_id='$boss_id' and debt>0 and client_id=clientsid order by firstname");
 while($returned_result = mysqli_fetch_assoc($search_query)){
 $client_id=$returned_result["client_id"];
@@ -482,23 +484,36 @@ echo "<tr>
 <td> $name </td>
 <td> $phone <br>($b_location)</td>  
 <td> $debt</td>           
-<td> $daily_p</td>
-<td>
+<td> $daily_p</td>";
 
-<form method='post' action='pay_for_officers_connector.php' >
-<input type='hidden' name='boss_id' value='$boss_id'>
-<input type='hidden' name='user_id' value='$user_id'>
-<input type='hidden' name='client_id' value='$client_id'>
-<input type='hidden' name='loan_no' value='$loan_no'>
-<input type='hidden' name='b_date' value='$pay_date'>
-<input type='hidden' name='officer_id' value='$officer_id'>
-<input type='hidden' name='report' value='$report'>
-<input type='text' name='amo' class='input is-success' style='width:100px; height:30px; border: 1px solid #006F37'></td>
-<td>
-
-<button type='submit' name=field_pay style='border: 1px solid #7C7C7C; border-radius:3px; font-size:17px; 
-color: green; background-color:white; height:30px; width:80px'>
-&nbsp;Pay  &nbsp;</button></form></td>";
+if($report == 1) {
+    echo "<td>
+            <input type='text' disabled placeholder='Disabled' class='input' style='width:100px; height:30px; border: 1px solid #ccc; background-color:#e0e0e0; cursor:not-allowed;'>
+          </td>
+          <td>
+            <button disabled type='button' style='border: 1px solid #ccc; border-radius:3px; font-size:17px; color: #aaa; background-color:#f5f5f5; height:30px; width:80px; cursor:not-allowed;'>
+            &nbsp;Pay&nbsp;
+            </button>
+          </td>";
+} else {
+    echo "<td>
+            <form method='post' action='pay_for_officers_connector.php'>
+            <input type='hidden' name='boss_id' value='$boss_id'>
+            <input type='hidden' name='user_id' value='$user_id'>
+            <input type='hidden' name='client_id' value='$client_id'>
+            <input type='hidden' name='loan_no' value='$loan_no'>
+            <input type='hidden' name='b_date' value='$pay_date'>
+            <input type='hidden' name='officer_id' value='$officer_id'>
+            <input type='hidden' name='report' value='$report'>
+            <input type='text' name='amo' class='input is-success' style='width:100px; height:30px; border: 1px solid #006F37'>
+          </td>
+          <td>
+            <button type='submit' name='field_pay' style='border: 1px solid #7C7C7C; border-radius:3px; font-size:17px; color: green; background-color:white; height:30px; width:80px'>
+            &nbsp;Pay&nbsp;
+            </button>
+            </form>
+          </td>";
+}
 echo "</tr>";
 
 }
@@ -524,7 +539,7 @@ echo"<b> Clients Paid on $payingdate </b>
 <tbody>";
 $total=0;
 $no=0;
-$search_query= mysqli_query($conn,"SELECT * FROM clients, field_payment  where users_id='$user_id' and bosses_id='$boss_id' and client_id=clientf_id and  pay_date='$pay_date' and  officerid='$officer_id' and mom=0 order by ts_id");
+$search_query= mysqli_query($conn,"SELECT * FROM clients, field_payment where users_id='$user_id' and bosses_id='$boss_id' and client_id=clientf_id and pay_date='$pay_date' and officerid='$officer_id' and mom=0 order by ts_id");
 while($returned_result = mysqli_fetch_assoc($search_query)){
 $no++;
 $client_id=$returned_result["client_id"];
@@ -589,8 +604,6 @@ $off="";
 echo "Select Field Officer";
 }
 ?> 
- 
-
  
   </div>
 </div>

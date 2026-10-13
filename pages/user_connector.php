@@ -1903,8 +1903,8 @@ $date=$_GET['b_date'];
 $amo=str_replace(",","",$_GET['amo']);
 $recovered=0;
 $type='Cash_in';
+$withdrawn=0;
 $client_id=isset($_GET['client_id'])?$_GET['client_id']:0;
-$mom=1;
 $reg_fee=0;
 $names='Exccess';
 if($client_id){

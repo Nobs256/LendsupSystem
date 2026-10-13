@@ -68,6 +68,14 @@ if ($user_email === 'iganga' && $d === '2026-09-02') {
     $total_op = 21000;
 }
 
+if ($user_email === 'busia' && $d === '2026-09-11') {
+    $total_op = 238200;
+}
+
+if ($user_email === 'soroti' && $d === '2026-09-18') {
+    $total_op = 31800;
+}
+
 //total op_mom
 $row = mysqli_fetch_assoc(mysqli_query($conn,"SELECT IFNULL(SUM(op_amount), 0) AS total FROM op_mom WHERE op_date='$d' AND userop_id='$user_id' AND bossop_id='$boss_id'"));
 $total_op_mom = $row['total'];
@@ -174,16 +182,17 @@ $total_loan_diff = $row['total'];
 $row = mysqli_fetch_assoc(mysqli_query($conn,"SELECT IFNULL(SUM(reg_fee), 0) AS total FROM loans_in_parts, loans WHERE bp_date='$d' AND usersp_id='$user_id' AND bossesp_id='$boss_id' AND part='Completed' AND cliente_id=clientp_id"));
 $total_fee_completed = $row['total'];
 
+
+$row = mysqli_fetch_assoc(mysqli_query($conn,"SELECT COUNT(*) AS total FROM loans_in_parts WHERE bp_date='$d' AND usersp_id='$user_id' AND bossesp_id='$boss_id' AND part='Part'"));
+$no_of_loans_inparts = $row['total'];
+//====end in parts
+
 // Total Returned Loans
 $total_returned_loans = 0;
 $returned_query = mysqli_query($conn, "SELECT IFNULL(SUM(amount_returned), 0) as total_returned FROM loan_returned WHERE date='$d' AND user_id='$user_id' AND boss_id='$boss_id'");
 if($returned_result = mysqli_fetch_assoc($returned_query)){  
     $total_returned_loans = $returned_result['total_returned'];
 }
-
-$row = mysqli_fetch_assoc(mysqli_query($conn,"SELECT COUNT(*) AS total FROM loans_in_parts WHERE bp_date='$d' AND usersp_id='$user_id' AND bossesp_id='$boss_id' AND part='Part'"));
-$no_of_loans_inparts = $row['total'];
-//====end in parts
 
 $display_mom_balance="";
 $display_unknown="";
@@ -273,7 +282,9 @@ ucase(firstname) as firstname,ucase(lastname) as lastname,  phone, business, b_l
 FROM clients, loan_pay  where p_date='$d' and users_id='$user_id' and bosses_id='$boss_id' and client_id=clients_id order by firstname");
 
 $all_loans=$total_given_loan+$total_loan_in_parts-$total_loan_diff;
-$cash_in= $total_amount_cash+$total_reg_fee+$total_fee_in_parts+$total_returned_loans;
+$cash_in= $total_amount_cash+$total_reg_fee+$total_fee_in_parts+$total_returned_loans+$total_excess;
+
+
 $total_cash=$cash_in+$total_op+$total_bank_withdraw;
 
 $cs=$total_cash-$all_loans-$total_exp-$total_bank_deposit;
@@ -327,7 +338,7 @@ echo "&nbsp;"
 <table border="1" align="center" width="40%" style="font-weight: bold; font-size: 15px;">
 <tr>
 <td style="padding-left:10px;">O.P</td><td style="padding-left: 10px;"><?php echo number_format($total_op) ?></td></tr>
-<td style="padding-left: 10px;">Cash In</td><td style="padding-left: 10px;"><?php  echo number_format($total_amount_cash+$total_reg_fee); ?></td></tr>
+<td style="padding-left: 10px;">Cash In</td><td style="padding-left: 10px;"><?php  echo number_format($cash_in); ?></td></tr>
 <td style="padding-left: 10px;">Total Cash</td><td style="padding-left: 10px;"><?php echo number_format($total_cash); ?></td></tr>
 <td style="padding-left: 10px;">Closing Stock</td><td style="padding-left: 10px;"><?php echo number_format($cs); ?></td></tr>
 </tr>

@@ -2,7 +2,7 @@
 
 // Only users in this list must have SMS credits and send payment SMS messages.
 $sms_usernames = [
-    'iganga'
+    'iganga','anorld'
 ];
 
 if (!function_exists('sms_user_uses_sms')) {

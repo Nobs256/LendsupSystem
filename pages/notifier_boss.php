@@ -47,6 +47,14 @@ if(isset($_POST['send'])){
     if ($user_email === 'iganga' && $d === '2026-09-02') {
         $total_op = 21000;
     }
+  
+  	if ($user_email === 'busia' && $d === '2026-09-11') {
+        $total_op = 238200;
+    }
+  
+  	if ($user_email === 'soroti' && $d === '2026-09-18') {
+        $total_op = 31800;
+    }
 
     $select = mysqli_query($conn,"SELECT SUM(paid_amount) as total FROM shortage where userrec_id='$user_id' and bossrec_id='$boss_id' and recovered=0 and rec_date='$d'");
     $total_shortage = mysqli_fetch_assoc($select)['total'] ?? 0;
@@ -141,19 +149,17 @@ if(isset($_POST['send'])){
     $totalcoll = 0;
     $total_amount_cash = 0;
     $all_loans = $total_given_loan + $total_loan_in_parts - $total_loan_diff;
-    $total_amount_cash = $total_amount +$total_reg_fee+$total_returned_loans+$total_fee_in_parts+$total_unknown_cash - $recovered_excess - $total_withdraw_unknown_cash;
+    $total_amount_cash = $total_amount +$total_reg_fee+$total_returned_loans+$total_fee_in_parts+$total_unknown_cash +$total_excess- $recovered_excess - $total_withdraw_unknown_cash;
     
     $loan_recovery = $loan_recovery ?? 0;
     $trash = $trash ?? 0;
 
-    $tci = $total_op + $total_amount_cash + $recovered_shortage + $total_excess + $total_bank_withdraw + $cash_from_branch + $loan_recovery;
+    $tci = $total_op + $total_amount_cash + $recovered_shortage + $total_bank_withdraw + $cash_from_branch + $loan_recovery;
     $tco = $trash + $all_loans + $total_exp + $cash_to_branch + $total_bank_deposit + $total_shortage;
     $closing = $tci - $tco;
 
     $trimed = trim(substr($closing,5,2));
-    if($trimed > 0){
-        $closing = $closing - $trimed;
-    }
+    $closing = ($trimed > 0) ? ($closing - $trimed) : $closing;
 
     //================ADVANCED ARREARS & ADVANCE LOGIC (OPTIMIZED)====================
     $query ="DELETE FROM daily_report WHERE usersed_id='$user_id' AND bossesed_id='$boss_id'";
@@ -194,11 +200,7 @@ if(isset($_POST['send'])){
             $missed_balance = 0;
         }
 
-        if($total_amount_paid > $amount_supposed_paid && $loan_days <= 30){
-            $adv = 1;
-        } else {
-            $adv = 0;
-        }
+        $adv = ($total_amount_paid > $amount_supposed_paid && $loan_days <= 30) ? 1 : 0;
         $insert_values[] = "(NULL, '$client_id', '$user_id', '$boss_id', '$curr_date', '$missed_balance', '$x', '$location', '$adv')";
     }
 
@@ -242,19 +244,28 @@ if(isset($_POST['send'])){
 </td>
 </tr>
 <tr><td>3.</td>
+<td style="padding-left:10px;">Total Excess </td><td> <?php echo number_format($total_excess) ?></td>
+</td>
+</tr>
+<tr><td>4.</td>
 <td style="padding-left: 10px;"> Returned Loans</td><td> <?php  echo number_format($total_returned_loans); ?></td>
 </td>
 </tr>
 
-<tr><td>4.</td>
+<tr><td>5.</td>
+<td style="padding-left: 10px;"> Cash Received</td><td> <?php  echo number_format($total_bank_withdraw); ?></td>
+</td>
+</tr>
+
+<tr><td>6.</td>
 <td style="padding-left: 10px;">Cashin </td><td> <?php  echo number_format($total_amount_cash)." ($payment_rate %)" ?></td>
 </td>
 </tr>
-<tr><td>5.</td>
+<tr><td>7.</td>
 <td style="padding-left:10px;">Total Cash </td><td> <?php echo number_format($tci) ?></td>
 </td>
 </tr> 
-<tr><td>6.</td>
+<tr><td>8.</td>
 <td style="padding-left:10px;">Closing Stock </td><td> <?php echo number_format($closing) ?></td>
 </td>
 </tr>
@@ -298,6 +309,7 @@ echo "<table border=1 width=100% align=center style='font-size:12px; font-weight
 <td>Tel</td>
 <td>Officer</td>";
 
+// Standard Loans Loop
 $select = mysqli_query($conn,"SELECT * FROM clients, loans WHERE users_id='$user_id' and bosses_id='$boss_id' and b_date='$d' and cliente_id=client_id");
 while($selected= mysqli_fetch_array($select)){  
     $client_new_id=$selected["client_id"];
@@ -313,11 +325,7 @@ while($selected= mysqli_fetch_array($select)){
 
     $no_of_loans = mysqli_num_rows(mysqli_query($conn,"SELECT * FROM loans WHERE cliente_id='$client_new_id' and userse_id='$user_id' and bossese_id='$boss_id'")); 
 
-    if($no_of_loans==1 && $b_date==$d){
-        $new_clients_str="New";
-    } else{
-        $new_clients_str="Old";
-    }
+    $new_clients_str = ($no_of_loans == 1 && $b_date == $d) ? "New" : "Old";
 
     echo"<td>".$names."</td>";
     echo"<td>".number_format($amount_given)."</td>";
@@ -326,36 +334,35 @@ while($selected= mysqli_fetch_array($select)){
     echo"<td>".$officer."</td>";
     echo"</tr>";
 }
+
+// Loan in Parts Clients Loop (Added to match check_message.php)
+$select = mysqli_query($conn,"SELECT * FROM clients, loans_in_parts WHERE usersp_id='$user_id' and bossesp_id='$boss_id' and bp_date='$d' and clientp_id=client_id");
+while($selected= mysqli_fetch_array($select)){  
+    $client_new_id=$selected["clientp_id"];
+    $names=strtoupper($selected["firstname"]." ".$selected["lastname"]);
+    $phone=$selected["phone"];
+    $location=$selected["b_location"];
+    $b_date=$selected["bp_date"];
+    $amount_given=$selected["amount_g"];
+
+    echo "<tr>";
+    $returned_result = mysqli_fetch_assoc(mysqli_query($conn,"SELECT * FROM officers where boss_id='$boss_id' and location='$location' "));     
+    $officer = strtoupper($returned_result["firstname"]. " ". ($returned_result["lastname"] ?? ''));
+
+    $no_of_loans = mysqli_num_rows(mysqli_query($conn,"SELECT * FROM loans WHERE cliente_id='$client_new_id' and userse_id='$user_id' and bossese_id='$boss_id'")); 
+
+    $new_clients_str = ($no_of_loans == 1 && $b_date == $d) ? "New" : "Old";
+
+    echo"<td>".$names."</td>";
+    echo"<td>".number_format($amount_given)."</td>";
+    echo"<td>".$new_clients_str."</td>";
+    echo"<td>".$phone."</td>";
+    echo"<td>".$officer."</td>";
+    echo"</tr>";
+}
+
 echo "<tr><td>Total Cash Out</td>
 <td>".number_format($all_loans)."</td><td></td><td></td><td></td></table>";
-?>
-
-<p align=center><b>BANKING</b></p>
-<?php
-echo "<table border=1 width=70% align=center style='font-size:12px; font-weight:bold'>
-<tr>
-<td style='padding-left:10px;'>No</td>
-<td style='padding-left:10px;'>Transaction Type</td>
-<td style='padding-left:10px;'>Amount</td>
-</tr>";
-
-$b = 0;
-$banking_query = mysqli_query($conn, "SELECT * FROM banking WHERE userde_id='$user_id' AND bossde_id='$boss_id' AND de_date='$d'");
-while ($b_loop = mysqli_fetch_array($banking_query)) {
-    $b++;
-    $transc = $b_loop['transc'];
-    $de_amount = $b_loop['de_amount'];
-    
-    echo "<tr>";
-    echo "<td style='padding-left:10px;'>".$b."</td>";
-    echo "<td style='padding-left:10px;'>".$transc."</td>";
-    echo "<td style='padding-left:10px;'>".number_format($de_amount)."</td>";
-    echo "</tr>";
-}
-if($b == 0) {
-    echo "<tr><td colspan='3' style='padding-left:10px; text-align:center;'>No banking transactions today</td></tr>";
-}
-echo "</table><br>";
 ?>
 
 <br>
@@ -391,7 +398,6 @@ while($selected= mysqli_fetch_array($select)){
     
     $grand_total_field_received += $location_gross; 
 
-    // Date-aware No. of Clients per location (as at selected date $d)
     $total_no_clients = mysqli_num_rows(mysqli_query($conn,"SELECT * FROM clients, clients_with_loan  WHERE users_id='$user_id' and bosses_id='$boss_id' and clientsid=client_id and b_location='$location' and pay_date<='$d'")); 
 
     $new_clients_field = mysqli_fetch_row(mysqli_query($conn, "
@@ -419,7 +425,6 @@ while($selected= mysqli_fetch_array($select)){
     $clients_advance = mysqli_num_rows(mysqli_query($conn,"SELECT * FROM clients, daily_report WHERE users_id='$user_id' and bosses_id='$boss_id' and cliente_id=client_id and b_location='$location' and advance=1"));
     $total_clients_advance_all += $clients_advance;
 
-    // NPL Calculation: Corrected using clients_with_loan and debt > 0
     $npl_query = mysqli_query($conn,"
         SELECT COUNT(DISTINCT cwl.clientsid) as npl_count 
         FROM clients_with_loan cwl
@@ -428,12 +433,11 @@ while($selected= mysqli_fetch_array($select)){
         AND cwl.userseid='$user_id' 
         AND cwl.bosseseid='$boss_id'
         AND cwl.debt > 0
-        AND DATEDIFF('$d', cwl.pay_date) >= 365
+        AND DATEDIFF('$d', cwl.pay_date) >= 183
     ");
     $npl_result = mysqli_fetch_assoc($npl_query);
     $npl_total = $npl_result['npl_count'] ?? 0;
 
-    // NPL clients who made payments on reporting day
     $npl_with_payment_query = mysqli_query($conn,"
         SELECT COUNT(DISTINCT lp.clients_id) as npl_paid
         FROM loan_pay lp
@@ -444,12 +448,11 @@ while($selected= mysqli_fetch_array($select)){
         AND lp.bossese_id='$boss_id'
         AND lp.p_date='$d'
         AND cwl.debt > 0
-        AND DATEDIFF('$d', cwl.pay_date) >= 365
+        AND DATEDIFF('$d', cwl.pay_date) >= 183
     ");
     $npl_payment_result = mysqli_fetch_assoc($npl_with_payment_query);
     $npl_with_payment = $npl_payment_result['npl_paid'] ?? 0;
 
-    // Unpaid calculation: subtract advance, paid clients, and total NPLs, add back NPLs who paid today
     $unpaid = $total_no_clients - $clients_paid_field - $clients_advance - $npl_total + $npl_with_payment;
 
     echo"<td style='padding-left:10px;'>".$location."</td>";
@@ -474,7 +477,6 @@ $total_no_loans = mysqli_num_rows(mysqli_query($conn,"SELECT * FROM clients, loa
 $no_clients_paid = mysqli_num_rows(mysqli_query($conn,"SELECT * FROM clients, loan_pay  WHERE users_id='$user_id' and bosses_id='$boss_id' and clients_id=client_id and p_date='$d'")); 
 $total_clients_advance = mysqli_num_rows(mysqli_query($conn,"SELECT * FROM clients, daily_report WHERE users_id='$user_id' and bosses_id='$boss_id' and cliente_id=client_id and advance=1"));
 
-// Global NPL Calculation: Corrected using clients_with_loan
 $global_npl_query = mysqli_query($conn,"
     SELECT COUNT(DISTINCT cwl.clientsid) as npl_count 
     FROM clients_with_loan cwl
@@ -486,7 +488,6 @@ $global_npl_query = mysqli_query($conn,"
 $global_npl_result = mysqli_fetch_assoc($global_npl_query);
 $global_npl_total = $global_npl_result['npl_count'] ?? 0;
 
-// Global NPL clients who made payments on reporting day
 $global_npl_with_payment_query = mysqli_query($conn,"
     SELECT COUNT(DISTINCT lp.clients_id) as npl_paid
     FROM loan_pay lp
@@ -500,7 +501,6 @@ $global_npl_with_payment_query = mysqli_query($conn,"
 $global_npl_payment_result = mysqli_fetch_assoc($global_npl_with_payment_query);
 $global_npl_with_payment = $global_npl_payment_result['npl_paid'] ?? 0;
 
-// Correct Global Unpaid formula
 $global_unpaid = $loan_clients - $no_clients_paid - $total_clients_advance - $global_npl_total + $global_npl_with_payment;
 
 echo "<tr>

@@ -8,40 +8,40 @@ $success_reg="";
 include('conn.php');
  
 
-if(isset($_GET['delete_client'])){
-$client_id = $_GET['delete_client'];
+// if(isset($_GET['delete_client'])){
+// $client_id = $_GET['delete_client'];
 
-mysqli_query($conn,"DELETE FROM loans WHERE cliente_id='$client_id'");	
-mysqli_query($conn,"DELETE FROM loan_pay WHERE clients_id='$client_id'");
-mysqli_query($conn,"DELETE FROM completed_loan WHERE clientcpid='$client_id'");
+// mysqli_query($conn,"DELETE FROM loans WHERE cliente_id='$client_id'");	
+// mysqli_query($conn,"DELETE FROM loan_pay WHERE clients_id='$client_id'");
+// mysqli_query($conn,"DELETE FROM completed_loan WHERE clientcpid='$client_id'");
 
-$result = mysqli_fetch_assoc(mysqli_query($conn,"SELECT * from clients_with_loan where clientsid='$client_id'"));     
-$debt= $result['debt'];
-$loan_no= $result['loan_no'];
-$pay_date= $result['pay_date'];
-$amount_given= $result['amount_given'];
-$user_id= $result['userseid'];
-$boss_id= $result['bosseseid'];
+// $result = mysqli_fetch_assoc(mysqli_query($conn,"SELECT * from clients_with_loan where clientsid='$client_id'"));     
+// $debt= $result['debt'];
+// $loan_no= $result['loan_no'];
+// $pay_date= $result['pay_date'];
+// $amount_given= $result['amount_given'];
+// $user_id= $result['userseid'];
+// $boss_id= $result['bosseseid'];
 
-$result = mysqli_fetch_assoc(mysqli_query($conn,"SELECT * from clients WHERE client_id='$client_id'"));     
-$firstname= $result['firstname'];
-$lastname=$result['lastname'];
-$phone= $result['phone'];
-$names=$firstname." ".$lastname;
+// $result = mysqli_fetch_assoc(mysqli_query($conn,"SELECT * from clients WHERE client_id='$client_id'"));     
+// $firstname= $result['firstname'];
+// $lastname=$result['lastname'];
+// $phone= $result['phone'];
+// $names=$firstname." ".$lastname;
 
-mysqli_query($conn,"INSERT INTO deleted_clients(loan_id, loan_no, clientsid, userseid, bosseseid, pay_date, amount_given, names, debt, phone) 
-VALUES (NULL, '$loan_no', '$client_id', '$user_id', '$boss_id', '$pay_date', '$amount_given', '$names', '$debt', '$phone')");
+// mysqli_query($conn,"INSERT INTO deleted_clients(loan_id, loan_no, clientsid, userseid, bosseseid, pay_date, amount_given, names, debt, phone) 
+// VALUES (NULL, '$loan_no', '$client_id', '$user_id', '$boss_id', '$pay_date', '$amount_given', '$names', '$debt', '$phone')");
  
-mysqli_query($conn,"DELETE FROM clients_with_loan WHERE clientsid='$client_id'");
-mysqli_query($conn,"DELETE FROM clients WHERE client_id='$client_id'");
+// mysqli_query($conn,"DELETE FROM clients_with_loan WHERE clientsid='$client_id'");
+// mysqli_query($conn,"DELETE FROM clients WHERE client_id='$client_id'");
 
-$success_reg = "<div style='background-color:#006F37; border-radius:5px; color:white; 
-height:40px; margin-left:0px; padding:10px; width: 700px'>
-<font color=white>A Client is Successfully Deleted!! </font>
-<a href='view_clients_admin.php?reload=1' style='color:white; margin-left:350px;''>X</a>
-</div>";
+// $success_reg = "<div style='background-color:#006F37; border-radius:5px; color:white; 
+// height:40px; margin-left:0px; padding:10px; width: 700px'>
+// <font color=white>A Client is Successfully Deleted!! </font>
+// <a href='view_clients_admin.php?reload=1' style='color:white; margin-left:350px;''>X</a>
+// </div>";
 
-}
+// }
 
 include('header.php');
 ?>

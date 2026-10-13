@@ -261,16 +261,8 @@ echo "</tbody></table>";
 </div>
 
 <!-- Excess/Shortage -->
-<div style="margin-bottom:15px;">
-	<label style="display:block; margin-bottom:5px; font-weight: bold;">Excess/Shortage:</label>
-	<div class="select is-success" style="width:100%;">
-		<select id="excess" style="width:100%; border: 1px solid #006F37; height:35px" required>
-			<option></option>
-			<option>Excess</option>
-			<option>Shortage</option>
-		</select>
-	</div>
-</div>
+<!-- Excess/Shortage (Hidden and set to Excess by default) -->
+<input type="hidden" id="excess" value="Excess">
 
 <!-- Amount -->
 <div style="margin-bottom:15px;">
